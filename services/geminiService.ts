@@ -1,5 +1,4 @@
 import { GoogleGenAI, Modality } from "@google/genai";
-import { LanguageOption } from '../types';
 import { LANGUAGES } from '../constants';
 
 const getLanguageFullName = (code: string): string => {
@@ -12,10 +11,7 @@ export const translateText = async (
   sourceLang: string,
   targetLang: string
 ): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-  }
-
+  // Fix: Use process.env.API_KEY as per the coding guidelines. This resolves the TypeScript error with import.meta.env.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const sourceLangFullName = getLanguageFullName(sourceLang);
@@ -30,21 +26,22 @@ Text to translate:
   try {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
+        // Fix: Simplified the contents parameter for a text-only prompt.
         contents: prompt,
     });
     
     return response.text.trim();
   } catch (error) {
     console.error("Error translating text:", error);
-    throw new Error("Failed to get a translation from the AI. Please try again.");
+    if (error instanceof Error && error.message) {
+      throw new Error(`Translation failed: ${error.message}`);
+    }
+    throw new Error("An unknown error occurred during translation. Please check the console for details.");
   }
 };
 
 export const getPronunciation = async (text: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-  }
-
+  // Fix: Use process.env.API_KEY as per the coding guidelines. This resolves the TypeScript error with import.meta.env.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
@@ -64,12 +61,15 @@ export const getPronunciation = async (text: string): Promise<string> => {
     
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (!base64Audio) {
-      throw new Error("No audio data received from API.");
+      throw new Error("No audio data received from API. The content may have been blocked.");
     }
     
     return base64Audio;
   } catch (error) {
     console.error("Error getting pronunciation:", error);
-    throw new Error("Failed to generate audio. Please try again.");
+    if (error instanceof Error && error.message) {
+      throw new Error(`Audio generation failed: ${error.message}`);
+    }
+    throw new Error("An unknown error occurred during audio generation. Please check the console for details.");
   }
 };
