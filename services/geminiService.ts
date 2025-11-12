@@ -1,5 +1,18 @@
+
 import { GoogleGenAI, Modality } from "@google/genai";
 import { LANGUAGES } from '../constants';
+
+// FIX: Per @google/genai coding guidelines, the API key must be obtained from process.env.API_KEY.
+// This also resolves the TypeScript error regarding 'import.meta.env'.
+const API_KEY = process.env.API_KEY;
+
+if (!API_KEY) {
+  // This provides a clear, immediate error if the environment variable is missing.
+  throw new Error("API_KEY environment variable not set. Please add it to your Vercel project settings and redeploy.");
+}
+
+// Initialize the AI client once and reuse it for all API calls for better performance.
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const getLanguageFullName = (code: string): string => {
   const lang = LANGUAGES.find(l => l.value === code);
@@ -11,9 +24,6 @@ export const translateText = async (
   sourceLang: string,
   targetLang: string
 ): Promise<string> => {
-  // Fix: Use process.env.API_KEY as per the coding guidelines. This resolves the TypeScript error with import.meta.env.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   const sourceLangFullName = getLanguageFullName(sourceLang);
   const targetLangFullName = getLanguageFullName(targetLang);
 
@@ -26,7 +36,6 @@ Text to translate:
   try {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        // Fix: Simplified the contents parameter for a text-only prompt.
         contents: prompt,
     });
     
@@ -41,9 +50,6 @@ Text to translate:
 };
 
 export const getPronunciation = async (text: string): Promise<string> => {
-  // Fix: Use process.env.API_KEY as per the coding guidelines. This resolves the TypeScript error with import.meta.env.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
