@@ -1,0 +1,5 @@
+{
+  "name": "Translator App",
+  "description": "A multi-language translation application using the Gemini API to translate between English, Tagalog, and Aklanon.",
+  "requestFramePermissions": []
+}
